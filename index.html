@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Display a map on a webpage</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.js"></script>
+<style>
+#map {
+    width: 100%;
+    max-width: 1200px; /* Increased from 900px to 1200px for larger desktop display */
+    aspect-ratio: 16/9; /* Wider aspect ratio for desktop */
+    min-height: 400px;  /* Increased min-height for desktop */
+    border-radius: 12px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+    margin: 0 auto;
+    display: block;
+}
+.map-container {
+    width: 100%;
+    min-height: 400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 2vw 0;
+}
+@media (max-width: 1200px) {
+    #map {
+        max-width: 98vw;
+        aspect-ratio: 1/1;
+        min-height: 200px;
+        height: auto;
+    }
+}
+@media (max-width: 600px) {
+    #map {
+        max-width: 98vw;
+        aspect-ratio: 1/1;
+        min-height: 200px;
+        height: auto;
+    }
+    .mapboxgl-popup-content img {
+        max-width: 90vw;
+        max-height: 40vw;
+    }
+}
+.mapboxgl-popup-content img {
+    max-width: 350px;
+    max-height: 250px;
+    width: 100%;
+    height: auto;
+    display: block;
+    margin-bottom: 8px;
+}
+</style>
+<div class="map-container">
+    <div id="map"></div>
+</div>
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoibmVsc29uZG90bHVuYSIsImEiOiJjbWFsOGFzMGUwNmhkMnNwcmFsazh3amhwIn0.L0SXpHLZn3weIzCKYsy8Cw';
+const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/nelsondotluna/cmalh1ocb002901s4788jemw2',
+    center: [-73.950863, 40.714917],
+    zoom: 11
+});
+
+map.on('load', () => {
+    map.addSource('Photos', {
+        type: 'vector',
+        url: 'mapbox://nelsondotluna.cmao6jxbf3ilz1omfougz1hau-6p40o'
+    });
+
+    map.addLayer({
+        'id': 'clickables',
+        'type': 'circle',
+        'source': 'Photos',
+        'source-layer': 'Photolinks',
+        'minzoom': 0,   // Show from world view
+        'maxzoom': 24,  // Show to max zoom
+        'paint': {
+           'circle-radius': [
+                'interpolate', ['linear'], ['zoom'],
+                5, 3,   // At zoom 5, radius 3
+                10, 5,  // At zoom 10, radius 5
+                14, 10  // At zoom 14+, radius 10
+            ],
+            'circle-color': '#9ae515'
+        }
+    });
+
+    map.addSource('Walks', {
+        type: 'vector',
+        url: 'mapbox://nelsondotluna.cmalgxewl11xv1qrxd5zzcfrd-4mcqp'
+    });
+    map.addLayer({
+        'id': 'walks-line',
+        'type': 'line',
+        'source': 'Walks',
+        'source-layer': 'WALK_MASTER-b0h2kk',
+        'minzoom': 0,   // Show from world view
+        'maxzoom': 24,  // Show to max zoom
+        'paint': {
+            'line-color': '#1a73e8',
+            'line-width': [
+                'interpolate', ['linear'], ['zoom'],
+                5, 2,    // At zoom 5, width 2px
+                10, 3,   // At zoom 10, width 3px
+                14, 8    // At zoom 14+, width 8px
+            ]
+        }
+    });
+    map.addLayer({
+        'id': 'walks-line-debug',
+        'type': 'line',
+        'source': 'Walks',
+        'source-layer': 'WALK_MASTER-b0h2kk',
+        'minzoom': 0,
+        'maxzoom': 24,
+        'paint': {
+            'line-color': '#ff00ff',
+            'line-width': 4,
+            'line-opacity': 1
+        }
+    });
+
+    map.on('click', 'clickables', (e) => {
+        const feature = e.features[0];
+        const url = feature.properties['flickr_url'];
+        const img_url = feature.properties['img_url'];
+        const date_taken = feature.properties['date_taken']; // Assumes this property exists in your vector tileset
+        let html = '';
+        if (img_url) {
+            html += `<a href="${url}" target="_blank"><img src="${img_url}" alt="Photo"></a>`;
+        }
+        if (date_taken) {
+            html += `<div style='font-size:14px;margin-bottom:6px;'><strong>Date Taken:</strong> ${date_taken}</div>`;
+        }
+        html += `<a href="${url}" target="_blank">See Photo</a>`;
+        new mapboxgl.Popup({ offset: 25 })
+            .setLngLat(e.lngLat)
+            .setHTML(html)
+            .addTo(map);
+    });
+
+    map.on('mouseenter', 'clickables', () => {
+        map.getCanvas().style.cursor = 'pointer';
+    });
+    map.on('mouseleave', 'clickables', () => {
+        map.getCanvas().style.cursor = '';
+    });
+});
+</script>
+
+</body>
+</html>
