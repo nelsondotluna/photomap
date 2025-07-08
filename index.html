@@ -54,9 +54,44 @@
     display: block;
     margin-bottom: 8px;
 }
+.lightbox-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+.lightbox-overlay.active {
+    display: flex;
+}
+.lightbox-img {
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 8px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.3);
+}
+.lightbox-close {
+    position: absolute;
+    top: 24px;
+    right: 36px;
+    color: #fff;
+    font-size: 2.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10000;
+    text-shadow: 0 2px 8px #000;
+}
 </style>
 <div class="map-container">
     <div id="map"></div>
+</div>
+<!-- Lightbox overlay -->
+<div id="lightbox-overlay" style="display:none;position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.85);justify-content:center;align-items:center;flex-direction:column;">
+    <span id="lightbox-close" style="position:absolute;top:24px;right:36px;font-size:2.5rem;color:#fff;cursor:pointer;font-family:sans-serif;z-index:10001;">&times;</span>
+    <img id="lightbox-img" src="" alt="Photo" style="max-width:90vw;max-height:80vh;border-radius:10px;box-shadow:0 2px 16px rgba(0,0,0,0.25);margin-bottom:18px;">
+    <div id="lightbox-meta" style="color:#fff;font-size:1.1rem;text-align:center;"></div>
 </div>
 <script>
 mapboxgl.accessToken = 'pk.eyJ1IjoibmVsc29uZG90bHVuYSIsImEiOiJjbWFsOGFzMGUwNmhkMnNwcmFsazh3amhwIn0.L0SXpHLZn3weIzCKYsy8Cw';
@@ -130,21 +165,21 @@ map.on('load', () => {
         const feature = e.features[0];
         const url = feature.properties['flickr_url'];
         const img_url = feature.properties['img_url'];
-        const date_taken = feature.properties['date_taken']; // Assumes this property exists in your vector tileset
-        let html = '';
+        const date_taken = feature.properties['date_taken'];
         if (img_url) {
-            html += `<a href="${url}" target="_blank"><img src="${img_url}" alt="Photo"></a>`;
+            // Show lightbox overlay
+            document.getElementById('lightbox-img').src = img_url;
+            let meta = '';
+            if (date_taken) {
+                meta += `<div><strong>Date Taken:</strong> ${date_taken}</div>`;
+            }
+            if (url) {
+                meta += `<div style='margin-top:8px;'><a href="${url}" target="_blank" style="color:#9ae515;text-decoration:underline;">See on Flickr</a></div>`;
+            }
+            document.getElementById('lightbox-meta').innerHTML = meta;
+            document.getElementById('lightbox-overlay').style.display = 'flex';
         }
-        if (date_taken) {
-            html += `<div style='font-size:14px;margin-bottom:6px;'><strong>Date Taken:</strong> ${date_taken}</div>`;
-        }
-        html += `<a href="${url}" target="_blank">See Photo</a>`;
-        new mapboxgl.Popup({ offset: 25 })
-            .setLngLat(e.lngLat)
-            .setHTML(html)
-            .addTo(map);
     });
-
     map.on('mouseenter', 'clickables', () => {
         map.getCanvas().style.cursor = 'pointer';
     });
@@ -152,6 +187,12 @@ map.on('load', () => {
         map.getCanvas().style.cursor = '';
     });
 });
+// Lightbox close logic
+const overlay = document.getElementById('lightbox-overlay');
+document.getElementById('lightbox-close').onclick = () => { overlay.style.display = 'none'; };
+overlay.onclick = (e) => {
+    if (e.target === overlay) overlay.style.display = 'none';
+};
 </script>
 
 </body>
