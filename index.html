@@ -9,37 +9,36 @@
 <style>
 #map {
     width: 100%;
-    max-width: 1200px; /* Increased from 900px to 1200px for larger desktop display */
+    max-width: 98vw; /* Responsive: nearly full viewport width */
+    max-height: 80vh; /* Responsive: up to 80% of viewport height */
     aspect-ratio: 16/9; /* Wider aspect ratio for desktop */
-    min-height: 400px;  /* Increased min-height for desktop */
+    min-height: 200px;  /* Increased min-height for desktop */
     border-radius: 12px;
     box-shadow: 0 2px 16px rgba(0,0,0,0.15);
     margin: 0 auto;
     display: block;
 }
 .map-container {
-    width: 100%;
-    min-height: 400px;
+    width: 100vw;
+    min-height: 200px;
     display: flex;
     justify-content: center;
     align-items: center;
     box-sizing: border-box;
     padding: 2vw 0;
 }
-@media (max-width: 1200px) {
+@media (max-width: 900px) {
     #map {
-        max-width: 98vw;
+        max-width: 99vw;
+        max-height: 60vh;
         aspect-ratio: 1/1;
-        min-height: 200px;
-        height: auto;
     }
 }
 @media (max-width: 600px) {
     #map {
-        max-width: 98vw;
+        max-width: 100vw;
+        max-height: 50vh;
         aspect-ratio: 1/1;
-        min-height: 200px;
-        height: auto;
     }
     .mapboxgl-popup-content img {
         max-width: 90vw;
